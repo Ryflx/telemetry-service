@@ -4,7 +4,7 @@ import os
 app = Flask(__name__)
 
 # Simple in-memory storage using a dictionary
-contract_status = {}
+contracts = {}
 
 @app.route('/services/addData', methods=['POST'])
 def add_data():
@@ -12,33 +12,39 @@ def add_data():
         # Get the JSON data from the request
         data = request.get_json()
         
-        # Use contract_id as the key (or create a default one if not provided)
-        contract_id = data.get('contract_id', 'default_contract')
+        # Extract user email as a unique identifier
+        # Note: The template variable will be replaced with actual email in your workflow
+        user = data.get('user', 'unknown_user')
         
-        # Overwrite any existing data for this contract
-        contract_status[contract_id] = data
+        # Create a key using user and use case
+        contract_key = f"{user}_{data.get('use_case', 'unknown')}"
         
-        # Optionally log to console
-        print(f"Updated status for {contract_id}: {data.get('status')}")
+        # Store the complete data object
+        contracts[contract_key] = data
+        
+        # Log the update
+        print(f"Updated contract status: {data.get('contract_status')} for {contract_key}")
         
         return jsonify({"status": "success", "message": "Data updated"}), 200
     
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 400
 
-@app.route('/services/getStatus/<contract_id>', methods=['GET'])
-def get_status(contract_id):
-    """Get the current status for a specific contract"""
-    if contract_id in contract_status:
-        return jsonify(contract_status[contract_id])
+@app.route('/services/getStatus/<user>/<use_case>', methods=['GET'])
+def get_status(user, use_case):
+    """Get the current status for a specific user and use case"""
+    contract_key = f"{user}_{use_case}"
+    
+    if contract_key in contracts:
+        return jsonify(contracts[contract_key])
     else:
         return jsonify({"error": "Contract not found"}), 404
 
 @app.route('/services/getAllStatus', methods=['GET'])
 def get_all_status():
-    """Get all contract statuses (for dashboard view)"""
-    return jsonify(contract_status)
+    """Get all contract statuses"""
+    return jsonify(contracts)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port
+    app.run(host='0.0.0.0', port=port)
