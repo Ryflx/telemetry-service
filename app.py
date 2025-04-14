@@ -56,6 +56,9 @@ def add_xml():
         # Get the XML data from the request
         xml_data = request.data
         
+        # Validate the XML by attempting to parse it
+        xmltodict.parse(xml_data)
+        
         # Store the XML data
         xml_storage = xml_data
         
@@ -65,7 +68,7 @@ def add_xml():
         return jsonify({"status": "success", "message": "XML data updated"}), 200
     
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
+        return jsonify({"status": "error", "message": f"Invalid XML: {str(e)}"}), 400
 
 @app.route('/services/getXmlData', methods=['GET'])
 def get_xml_data():
