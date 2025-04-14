@@ -71,7 +71,13 @@ def add_xml():
 def get_xml_data():
     """Retrieve and return the stored XML data"""
     if xml_storage:
-        return xml_storage, 200, {'Content-Type': 'application/xml'}
+        try:
+            # Parse and unparse the XML to ensure it's well-formed
+            parsed_data = xmltodict.parse(xml_storage)
+            clean_xml = xmltodict.unparse(parsed_data, pretty=True)
+            return clean_xml, 200, {'Content-Type': 'application/xml'}
+        except Exception as e:
+            return jsonify({"error": "Failed to process XML data", "message": str(e)}), 500
     else:
         return jsonify({"error": "No XML data found"}), 404
 
