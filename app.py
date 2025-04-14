@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify
 import os
+import xmltodict
 
 app = Flask(__name__)
 
 # Simple in-memory storage using a dictionary
 contracts = {}
+
+# Simple storage for a single XML payload
+xml_storage = None
 
 @app.route('/services/addData', methods=['POST'])
 def add_data():
@@ -44,6 +48,32 @@ def get_status(user, use_case):
 def get_all_status():
     """Get all contract statuses"""
     return jsonify(contracts)
+
+@app.route('/services/addXml', methods=['POST'])
+def add_xml():
+    global xml_storage
+    try:
+        # Get the XML data from the request
+        xml_data = request.data
+        
+        # Store the XML data
+        xml_storage = xml_data
+        
+        # Log the update
+        print("XML data updated")
+        
+        return jsonify({"status": "success", "message": "XML data updated"}), 200
+    
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+@app.route('/services/getXmlData', methods=['GET'])
+def get_xml_data():
+    """Retrieve and return the stored XML data"""
+    if xml_storage:
+        return xml_storage, 200, {'Content-Type': 'application/xml'}
+    else:
+        return jsonify({"error": "No XML data found"}), 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
