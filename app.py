@@ -11,8 +11,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Simple in-memory storage using a dictionary
 contracts = {}
 
-# Simple storage for a single XML payload
-xml_storage = None
+# Simple storage for multiple XML payloads
+xml_storage = {}
 
 @app.route('/services/addData', methods=['POST'])
 def add_data():
@@ -55,38 +55,41 @@ def get_all_status():
 
 @app.route('/services/addXml', methods=['POST'])
 def add_xml():
-    global xml_storage
     try:
         # Get the XML data from the request
         xml_data = request.data
         
-        # Validate the XML by attempting to parse it
-        xmltodict.parse(xml_data)
+        # Parse the XML data
+        parsed_data = xmltodict.parse(xml_data)
         
-        # Store the XML data
-        xml_storage = xml_data
+        # Extract the unique identifier (assuming it's a top-level element)
+        unique_id = parsed_data.get('unique_id')
+        
+        if not unique_id:
+            return jsonify({"status": "error", "message": "Unique ID not found"}), 400
+        
+        # Store the XML data using the unique identifier
+        xml_storage[unique_id] = xml_data
         
         # Log the update
-        print("XML data updated")
+        print(f"XML data updated for ID: {unique_id}")
         
-        return jsonify({"status": "success", "message": "XML data updated"}), 200
+        return jsonify({"status": "success", "message": f"XML data updated for ID: {unique_id}"}), 200
     
     except Exception as e:
         return jsonify({"status": "error", "message": f"Invalid XML: {str(e)}"}), 400
 
-@app.route('/services/getXmlData', methods=['GET'])
-def get_xml_data():
-    """Retrieve and return the stored XML data"""
-    if xml_storage:
+@app.route('/services/getXmlData/<uid>', methods=['GET'])
+def get_xml_data(uid):
+    """Retrieve and return the stored XML data for a specific UID"""
+    if uid in xml_storage:
         try:
-            # Parse and unparse the XML to ensure it's well-formed
-            parsed_data = xmltodict.parse(xml_storage)
-            clean_xml = xmltodict.unparse(parsed_data, pretty=True)
-            return clean_xml, 200, {'Content-Type': 'application/xml'}
+            # Return the stored XML data
+            return xml_storage[uid], 200, {'Content-Type': 'application/xml'}
         except Exception as e:
             return jsonify({"error": "Failed to process XML data", "message": str(e)}), 500
     else:
-        return jsonify({"error": "No XML data found"}), 404
+        return jsonify({"error": "No XML data found for the given UID"}), 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
