@@ -62,8 +62,8 @@ def add_xml():
         # Parse the XML data
         parsed_data = xmltodict.parse(xml_data)
         
-        # Extract the unique identifier (assuming it's a top-level element)
-        unique_id = parsed_data.get('unique_id')
+        # Extract the first node name as the unique identifier
+        unique_id = next(iter(parsed_data))
         
         if not unique_id:
             return jsonify({"status": "error", "message": "Unique ID not found"}), 400
