@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_cors import CORS
 import os
 import xmltodict
@@ -14,6 +14,60 @@ contracts = {}
 # Simple storage for multiple XML payloads
 xml_storage = {}
 
+# Frontend routes
+@app.route('/')
+def index():
+    return redirect(url_for('dashboard'))
+
+@app.route('/dashboard')
+def dashboard():
+    # Calculate statistics
+    contract_count = len(contracts)
+    xml_count = len(xml_storage)
+    unique_users = len(set(contract.get('user', 'unknown') for contract in contracts.values()))
+    
+    # Get recent contracts (last 5)
+    recent_contracts = list(contracts.values())[-5:]
+    
+    # Get XML summary
+    xml_summary = list(xml_storage.keys())[:5]
+    
+    return render_template('dashboard.html',
+                         contract_count=contract_count,
+                         xml_count=xml_count,
+                         user_count=unique_users,
+                         recent_contracts=recent_contracts,
+                         xml_summary=xml_summary)
+
+@app.route('/contracts')
+def contracts_page():
+    # Calculate statistics
+    unique_users = len(set(contract.get('user', 'unknown') for contract in contracts.values()))
+    unique_use_cases = len(set(contract.get('use_case', 'unknown') for contract in contracts.values()))
+    
+    return render_template('contracts.html',
+                         contracts=contracts,
+                         unique_users=unique_users,
+                         unique_use_cases=unique_use_cases)
+
+@app.route('/xml-data')
+def xml_data():
+    # Calculate XML statistics
+    if xml_storage:
+        sizes = [len(xml_content) for xml_content in xml_storage.values()]
+        total_size = sum(sizes)
+        average_size = total_size // len(sizes) if sizes else 0
+        largest_size = max(sizes) if sizes else 0
+    else:
+        total_size = average_size = largest_size = 0
+    
+    return render_template('xml_data.html',
+                         xml_data=xml_storage,
+                         total_size=total_size,
+                         average_size=average_size,
+                         largest_size=largest_size)
+
+# API routes
 @app.route('/services/addData', methods=['POST'])
 def add_data():
     try:

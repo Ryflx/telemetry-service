@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-file-contract fa-2x mb-3 text-primary"></i>
+                <h3>{{ contract_count }}</h3>
+                <p class="text-muted">Total Contracts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-code fa-2x mb-3 text-success"></i>
+                <h3>{{ xml_count }}</h3>
+                <p class="text-muted">XML Records</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x mb-3 text-info"></i>
+                <h3>{{ user_count }}</h3>
+                <p class="text-muted">Active Users</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Contract Activity
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_contracts %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Use Case</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for contract in recent_contracts %}
+                                <tr>
+                                    <td>{{ contract.user }}</td>
+                                    <td>{{ contract.use_case }}</td>
+                                    <td>
+                                        {% if contract.contract_status %}
+                                            <span class="badge bg-success status-badge">{{ contract.contract_status }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary status-badge">Unknown</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No contract data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database me-2"></i>XML Data Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if xml_summary %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for uid in xml_summary %}
+                                <tr>
+                                    <td>{{ uid }}</td>
+                                    <td><span class="badge bg-primary status-badge">Stored</span></td>
+                                    <td>
+                                        <a href="{{ url_for('get_xml_data', uid=uid) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">No XML data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>API Endpoints
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Contract Data</h6>
+                        <ul class="list-unstyled">
+                            <li><code>POST /services/addData</code> - Add contract data</li>
+                            <li><code>GET /services/getStatus/&lt;user&gt;/&lt;use_case&gt;</code> - Get specific status</li>
+                            <li><code>GET /services/getAllStatus</code> - Get all statuses</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>XML Data</h6>
+                        <ul class="list-unstyled">
+                            <li><code>POST /services/addXml</code> - Add XML data</li>
+                            <li><code>GET /services/getXmlData/&lt;uid&gt;</code> - Get XML data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

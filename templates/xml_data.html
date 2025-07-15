@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-code me-2"></i>XML Data
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-database me-2"></i>All XML Records
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if xml_data %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Status</th>
+                                    <th>Size</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for uid, xml_content in xml_data.items() %}
+                                <tr>
+                                    <td>
+                                        <code>{{ uid }}</code>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success status-badge">
+                                            <i class="fas fa-check me-1"></i>Stored
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info status-badge">
+                                            {{ xml_content | length }} bytes
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#xmlModal{{ loop.index }}">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <a href="{{ url_for('get_xml_data', uid=uid) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Modal for XML content -->
+                                <div class="modal fade" id="xmlModal{{ loop.index }}" tabindex="-1">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">XML Data - {{ uid }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <small class="text-muted">Size: {{ xml_content | length }} bytes</small>
+                                                </div>
+                                                <pre class="bg-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>{{ xml_content.decode('utf-8') if xml_content is not string else xml_content }}</code></pre>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <a href="{{ url_for('get_xml_data', uid=uid) }}" class="btn btn-primary" target="_blank">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-code fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No XML data available</h5>
+                        <p class="text-muted">XML data will appear here once you start sending XML to the API.</p>
+                        <div class="mt-4">
+                            <h6>To add XML data, POST to:</h6>
+                            <code>/services/addXml</code>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if xml_data %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>XML Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-primary">{{ xml_data | length }}</h3>
+                            <p class="text-muted">Total Records</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ total_size }}</h3>
+                            <p class="text-muted">Total Size (bytes)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-info">{{ average_size }}</h3>
+                            <p class="text-muted">Average Size (bytes)</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h3 class="text-warning">{{ largest_size }}</h3>
+                            <p class="text-muted">Largest Record (bytes)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>API Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Add XML Data</h6>
+                        <p class="text-muted">Send XML data via POST request:</p>
+                        <pre class="bg-light p-3 rounded"><code>curl -X POST -H "Content-Type: application/xml" \
+  -d '&lt;your-xml-data&gt;' \
+  http://your-domain/services/addXml</code></pre>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Retrieve XML Data</h6>
+                        <p class="text-muted">Get XML data by ID:</p>
+                        <pre class="bg-light p-3 rounded"><code>curl http://your-domain/services/getXmlData/&lt;uid&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
